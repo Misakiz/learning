@@ -31,12 +31,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: name-service-0
+    name: name-service-0
 spec:
   selector:
     statefulset.kubernetes.io/pod-name: name-service-0
-  clusterIP: None  # handless service
+  type: ClusterIP
   ports:
     - name: name-service-0
       port: 9876
       targetPort: 9876
+
+ 
