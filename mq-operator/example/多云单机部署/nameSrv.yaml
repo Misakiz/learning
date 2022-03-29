@@ -1,0 +1,42 @@
+apiVersion: rocketmq.apache.org/v1alpha1
+kind: NameService
+metadata:
+  name: name-service
+spec:
+  size: 1
+  nameServiceImage: open-registry.going-link.com/zhenyun/rocketmq-namesrv:4.5.1
+  imagePullPolicy: Always
+  hostNetwork: false
+  dnsPolicy: ClusterFirstWithHostNet
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1024Mi"
+      cpu: "500m"
+  storageMode: StorageClass
+  hostPath: /data/rocketmq/nameserver
+  volumeClaimTemplates:
+    - metadata:
+        name: namesrv-storage
+        annotations:
+          volume.beta.kubernetes.io/storage-class: nfs-provisioner
+      spec:
+        accessModes: [ "ReadWriteMany" ]
+        resources:
+          requests:
+            storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: name-service-0
+spec:
+  selector:
+    statefulset.kubernetes.io/pod-name: name-service-0
+  clusterIP: None  # handless service
+  ports:
+    - name: name-service-0
+      port: 9876
+      targetPort: 9876
