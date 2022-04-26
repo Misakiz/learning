@@ -28,7 +28,7 @@ ENV ROCKETMQ_VERSION ${version}
 ENV ROCKETMQ_HOME  /root/rocketmq/broker
 
 WORKDIR  ${ROCKETMQ_HOME}
-
+#低版本mq gpg校验失败，缺少公钥，删掉校验即可
 # Install
 RUN set -eux; \
     apk add --virtual .build-deps curl gnupg unzip; \
