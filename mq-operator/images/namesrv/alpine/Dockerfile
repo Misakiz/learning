@@ -29,6 +29,8 @@ ENV ROCKETMQ_HOME  /root/rocketmq/nameserver
 
 WORKDIR  ${ROCKETMQ_HOME}
 
+
+#低版本gpg校验会失败，缺少公钥，删除gpg校验即可（或者自己找mq二进制包）
 # Install
 RUN set -eux; \
     apk add --virtual .build-deps curl gnupg unzip; \
