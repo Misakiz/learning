@@ -40,7 +40,7 @@ spec:
   # replicaPerGroup is the number of each broker cluster
   replicaPerGroup: 0
   # brokerImage is the customized docker image repo of the RocketMQ broker
-  brokerImage: open-registry.going-link.com/zhenyun/broker:4.5.1
+  brokerImage: open-registry.going-link.com/zhenyun/rocketmq-broker:4.3.2
   # imagePullPolicy is the image pull policy
   imagePullPolicy: Always
   hostNetwork: false
