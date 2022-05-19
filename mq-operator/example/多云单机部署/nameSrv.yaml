@@ -10,11 +10,11 @@ spec:
   dnsPolicy: ClusterFirstWithHostNet
   resources:
     requests:
-      memory: "4096Mi"
-      cpu: "2000m"
+      memory: "2048Mi"
+      cpu: "1000m"
     limits:
-      memory: "1024Mi"
-      cpu: "500m"
+      memory: "2048Mi"
+      cpu: "1000m"
   storageMode: StorageClass
   hostPath: /data/rocketmq/nameserver
   volumeClaimTemplates:
