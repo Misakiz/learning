@@ -10,8 +10,8 @@ spec:
   dnsPolicy: ClusterFirstWithHostNet
   resources:
     requests:
-      memory: "1024Mi"
-      cpu: "500m"
+      memory: "4096Mi"
+      cpu: "2000m"
     limits:
       memory: "1024Mi"
       cpu: "500m"
