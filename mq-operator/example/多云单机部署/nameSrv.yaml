@@ -4,7 +4,7 @@ metadata:
   name: name-service
 spec:
   size: 1
-  nameServiceImage: open-registry.going-link.com/zhenyun/rocketmq-namesrv:4.5.1
+  nameServiceImage: open-registry.going-link.com/zhenyun/rocketmq-namesrv:4.3.2
   imagePullPolicy: Always
   hostNetwork: false
   dnsPolicy: ClusterFirstWithHostNet
