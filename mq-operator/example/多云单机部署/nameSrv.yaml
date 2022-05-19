@@ -31,7 +31,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-    name: name-service-0
+    name: rocketmq-svc
 spec:
   selector:
     statefulset.kubernetes.io/pod-name: name-service-0
