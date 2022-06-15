@@ -36,7 +36,7 @@ spec:
   # size is the number of the broker cluster, each broker cluster contains a master broker and [replicaPerGroup] replica brokers.
   size: 1
   # nameServers is the [ip:port] list of name service
-  nameServers: "name-service-0:9876"
+  nameServers: "rocketmq-svc:9876"
   # replicaPerGroup is the number of each broker cluster
   replicaPerGroup: 0
   # brokerImage is the customized docker image repo of the RocketMQ broker
