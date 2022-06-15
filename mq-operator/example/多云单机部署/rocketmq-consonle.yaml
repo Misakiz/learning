@@ -4,7 +4,7 @@ metadata:
   name: console
 spec:
   # nameServers is the [ip:port] list of name service
-  nameServers: "name-service-0:9876"
+  nameServers: "rocketmq-svc:9876"
   # consoleDeployment define the console deployment
   consoleDeployment:
     apiVersion: apps/v1
