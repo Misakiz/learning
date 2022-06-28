@@ -19,6 +19,8 @@ FROM openjdk:8-alpine
 
 RUN apk add --no-cache bash gettext nmap-ncat openssl busybox-extras
 
+RUN yum install -y java-1.8.0-openjdk-headless unzip gettext nmap-ncat openssl && yum clean all -y
+
 ARG version
 
 # Rocketmq version
@@ -28,21 +30,16 @@ ENV ROCKETMQ_VERSION ${version}
 ENV ROCKETMQ_HOME  /root/rocketmq/broker
 
 WORKDIR  ${ROCKETMQ_HOME}
+
+COPY rocketmq.zip .
 #低版本mq gpg校验失败，缺少公钥，删掉校验即可
 # Install
 RUN set -eux; \
     apk add --virtual .build-deps curl gnupg unzip; \
-    curl https://archive.apache.org/dist/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip -o rocketmq.zip; \
-    curl https://archive.apache.org/dist/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip.asc -o rocketmq.zip.asc; \
-	curl -L https://www.apache.org/dist/rocketmq/KEYS -o KEYS; \
-	\
-	gpg --import KEYS; \
-    gpg --batch --verify rocketmq.zip.asc rocketmq.zip; \
     unzip rocketmq.zip; \
 	mv rocketmq-all*/* . ; \
 	rmdir rocketmq-all* ; \
 	rm rocketmq.zip ; \
-	rm rocketmq.zip.asc KEYS; \
 	apk del .build-deps ; \
     rm -rf /var/cache/apk/* ; \
     rm -rf /tmp/*
