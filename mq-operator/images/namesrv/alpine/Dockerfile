@@ -29,21 +29,16 @@ ENV ROCKETMQ_HOME  /root/rocketmq/nameserver
 
 WORKDIR  ${ROCKETMQ_HOME}
 
+COPY rocketmq.zip .
 
 #低版本gpg校验会失败，缺少公钥，删除gpg校验即可（或者自己找mq二进制包）
 # Install
 RUN set -eux; \
     apk add --virtual .build-deps curl gnupg unzip; \
-    curl https://archive.apache.org/dist/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip -o rocketmq.zip; \
-    curl https://archive.apache.org/dist/rocketmq/${ROCKETMQ_VERSION}/rocketmq-all-${ROCKETMQ_VERSION}-bin-release.zip.asc -o rocketmq.zip.asc; \
-	curl -L https://www.apache.org/dist/rocketmq/KEYS -o KEYS; \
-	gpg --import KEYS; \
-    gpg --batch --verify rocketmq.zip.asc rocketmq.zip; \
     unzip rocketmq.zip; \
 	mv rocketmq-all*/* . ; \
 	rmdir rocketmq-all* ; \
 	rm rocketmq.zip ; \
-    rm rocketmq.zip.asc KEYS; \
 	apk del .build-deps ; \
     rm -rf /var/cache/apk/* ; \
     rm -rf /tmp/*
