@@ -19,8 +19,6 @@ FROM openjdk:8-alpine
 
 RUN apk add --no-cache bash gettext nmap-ncat openssl busybox-extras
 
-RUN yum install -y java-1.8.0-openjdk-headless unzip gettext nmap-ncat openssl && yum clean all -y
-
 ARG version
 
 # Rocketmq version
