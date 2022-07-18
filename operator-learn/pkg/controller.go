@@ -1,9 +1,13 @@
 package pkg
 
 import (
+	"context"
+	v14 "k8s.io/api/networking/v1"
 	"k8s.io/api/networking/v1beta1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/util/wait"
 	informer "k8s.io/client-go/informers/core/v1"
 	networkInformer "k8s.io/client-go/informers/networking/v1"
 	"k8s.io/client-go/kubernetes"
@@ -12,7 +16,11 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
 	"reflect"
+	"time"
 )
+
+const workNum = 5
+const maxTry = 10
 
 type controller struct {
 	cient kubernetes.Interface
@@ -48,12 +56,12 @@ func (c *controller) deleteIngress(obj interface{}) {
 	//获取ingress对象
 	ingress := obj.(*v1beta1.Ingress)
 	//根据ingress获取service
-	service := v12.GetControllerOf(ingress)
-	if service != nil {
+	ownerReference := v12.GetControllerOf(ingress)
+	if ownerReference != nil {
 		return
 	}
 	//判断service的类型是否是service
-	if service.Kind != "Service" {
+	if ownerReference.Kind != "Service" {
 		return
 	}
 	//放入queue
@@ -61,7 +69,126 @@ func (c *controller) deleteIngress(obj interface{}) {
 }
 
 func (c *controller) Run(stopCh chan struct{}) {
+	for i := 0; i < workNum; i++ {
+		//保证5个goroutine一直执行
+		go wait.Until(c.worker, time.Minute, stopCh)
+	}
 	<-stopCh
+}
+
+func (c *controller) worker() {
+	for c.processNextItem() {
+	}
+}
+
+func (c *controller) processNextItem() bool {
+	//获取queue中的key
+	item, shutdown := c.queue.Get()
+	//如果该队列状态为shutdown
+	if shutdown {
+		return false
+	}
+	//处理完该key后,从queue中移除
+	defer c.queue.Done(item)
+	key := item.(string)
+	err := c.syncService(key)
+	if err != nil {
+		c.handlerError(key, err)
+		return false
+	}
+	return true
+}
+
+func (c *controller) syncService(key string) error {
+	namespaceKey, name, err := cache.SplitMetaNamespaceKey(key)
+	if err != nil {
+		return err
+	}
+
+	//删除
+	//从servicesLister获取service资源
+	service, err := c.servicesLister.Services(namespaceKey).Get(name)
+	//如果资源不存在会返回NotFound错误,获取错误不做处理
+	if errors.IsNotFound(err) {
+		return nil
+	}
+	//报错返回错误
+	if err != nil {
+		return err
+	}
+
+	//新增或者删除
+	//todo 先判断service下有没有Annotations,再判断service资源下的annotation是否含有"ingress/http"的key
+	_, ok := service.GetAnnotations()["ingress/http"]
+	ingress, err := c.ingressLister.Ingresses(namespaceKey).Get(name)
+	//缓存中有ingress资源但是获取报错
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+	//有service资源,但是没有ingress资源
+	if ok && errors.IsNotFound(err) {
+		//创建ingress对象
+		ig := c.constructIngress(namespaceKey, name)
+		//创建ingress
+		_, err := c.cient.NetworkingV1().Ingresses(namespaceKey).Create(context.TODO(), ig, v12.CreateOptions{})
+		if err != nil {
+			return err
+		}
+		//没有service,但是有ingress资源
+	} else if !ok && ingress != nil {
+		//删除ingress
+		err := c.cient.NetworkingV1().Ingresses(namespaceKey).Delete(context.TODO(), name, v12.DeleteOptions{})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+//处理错误
+func (c *controller) handlerError(item string, err error) {
+	//重试小于10次
+	if c.queue.NumRequeues(item) <= maxTry {
+		//worker中报错则加回限速队列重试
+		c.queue.AddRateLimited(item)
+		return
+	}
+	runtime.HandleError(err)
+	c.queue.Forget(item)
+}
+
+//创建ingress对象
+func (c *controller) constructIngress(namespaceKey string, name string) *v14.Ingress {
+	ingress := v14.Ingress{}
+	ingress.Name = name
+	ingress.Namespace = namespaceKey
+	pathType := v14.PathTypePrefix
+	ingress.Spec = v14.IngressSpec{
+		Rules: []v14.IngressRule{
+			v14.IngressRule{
+				Host: "zqa.com",
+				IngressRuleValue: v14.IngressRuleValue{
+					HTTP: &v14.HTTPIngressRuleValue{
+						Paths: []v14.HTTPIngressPath{
+							{
+								Path:     "/",
+								PathType: &pathType,
+								Backend: v14.IngressBackend{
+									Service: &v14.IngressServiceBackend{
+										Name: name,
+										Port: v14.ServiceBackendPort{
+											Number: 80,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	return &ingress
 }
 
 func NewController(client kubernetes.Interface, serviceInformer informer.ServiceInformer, ingressInformer networkInformer.IngressInformer) controller {
