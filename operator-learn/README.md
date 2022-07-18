@@ -10,7 +10,7 @@ K8s官方文档     https://kubernetes.io/docs/reference/generated/kubernetes-ap
 (本地存储，减少与apiServer访问次数)
 Indexer        https://blog.csdn.net/li_101357/article/details/89743569
 
-(一个队列，用户存储资源对象的变化，类生产者消费者模型)
+(一个队列，用户存储资源对象的变化，类生产者(reflector)消费者()模型)
 deltaFIFO      https://cloud.tencent.com/developer/article/1692474
 
 (生产者消费者模型，权衡worker处理慢和生产者生产数据过快的速度)
