@@ -2,8 +2,8 @@ package pkg
 
 import (
 	"context"
+	v13 "k8s.io/api/core/v1"
 	v14 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -23,7 +23,7 @@ const workNum = 5
 const maxTry = 10
 
 type controller struct {
-	cient kubernetes.Interface
+	client kubernetes.Interface
 	//主要用于与index交互，减轻与apiServer交互的压力
 	ingressLister  v1.IngressLister
 	servicesLister coreLister.ServiceLister
@@ -52,12 +52,13 @@ func (c *controller) enqueue(obj interface{}) {
 	//放入queue
 	c.queue.Add(key)
 }
+
 func (c *controller) deleteIngress(obj interface{}) {
 	//获取ingress对象
-	ingress := obj.(*v1beta1.Ingress)
+	ingress := obj.(*v14.Ingress)
 	//根据ingress获取service
 	ownerReference := v12.GetControllerOf(ingress)
-	if ownerReference != nil {
+	if ownerReference == nil {
 		return
 	}
 	//判断service的类型是否是service
@@ -128,16 +129,16 @@ func (c *controller) syncService(key string) error {
 	//有service资源,但是没有ingress资源
 	if ok && errors.IsNotFound(err) {
 		//创建ingress对象
-		ig := c.constructIngress(namespaceKey, name)
+		ig := c.constructIngress(service)
 		//创建ingress
-		_, err := c.cient.NetworkingV1().Ingresses(namespaceKey).Create(context.TODO(), ig, v12.CreateOptions{})
+		_, err := c.client.NetworkingV1().Ingresses(namespaceKey).Create(context.TODO(), ig, v12.CreateOptions{})
 		if err != nil {
 			return err
 		}
 		//没有service,但是有ingress资源
 	} else if !ok && ingress != nil {
 		//删除ingress
-		err := c.cient.NetworkingV1().Ingresses(namespaceKey).Delete(context.TODO(), name, v12.DeleteOptions{})
+		err := c.client.NetworkingV1().Ingresses(namespaceKey).Delete(context.TODO(), name, v12.DeleteOptions{})
 		if err != nil {
 			return err
 		}
@@ -158,12 +159,17 @@ func (c *controller) handlerError(item string, err error) {
 }
 
 //创建ingress对象
-func (c *controller) constructIngress(namespaceKey string, name string) *v14.Ingress {
+func (c *controller) constructIngress(service *v13.Service) *v14.Ingress {
 	ingress := v14.Ingress{}
-	ingress.Name = name
-	ingress.Namespace = namespaceKey
+	ingress.ObjectMeta.OwnerReferences = []v12.OwnerReference{
+		*v12.NewControllerRef(service, v13.SchemeGroupVersion.WithKind("Service")),
+	}
+	ingress.Name = service.Name
+	ingress.Namespace = service.Namespace
 	pathType := v14.PathTypePrefix
+	inc := "nginx"
 	ingress.Spec = v14.IngressSpec{
+		IngressClassName: &inc,
 		Rules: []v14.IngressRule{
 			v14.IngressRule{
 				Host: "zqa.com",
@@ -175,7 +181,7 @@ func (c *controller) constructIngress(namespaceKey string, name string) *v14.Ing
 								PathType: &pathType,
 								Backend: v14.IngressBackend{
 									Service: &v14.IngressServiceBackend{
-										Name: name,
+										Name: service.Name,
 										Port: v14.ServiceBackendPort{
 											Number: 80,
 										},
@@ -192,7 +198,7 @@ func (c *controller) constructIngress(namespaceKey string, name string) *v14.Ing
 }
 
 func NewController(client kubernetes.Interface, serviceInformer informer.ServiceInformer, ingressInformer networkInformer.IngressInformer) controller {
-	c := controller{cient: client,
+	c := controller{client: client,
 		servicesLister: serviceInformer.Lister(),
 		ingressLister:  ingressInformer.Lister(),
 		queue:          workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "ingressManager"),
@@ -206,7 +212,7 @@ func NewController(client kubernetes.Interface, serviceInformer informer.Service
 
 	//创建ingress的事件处理handler
 	ingressInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: c.deleteIngress,
+		DeleteFunc: c.deleteIngress,
 	})
 
 	return c
