@@ -4,7 +4,9 @@ WORKDIR /app
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build -o  ingress-manager  main.go
+ENV GOPROXY https://goproxy.cn,direct
+
+RUN go mod tidy && CGO_ENABLED=0 go build -o  ingress-manager  main.go
 
 FROM alpine:3.15.3
 
