@@ -17,6 +17,9 @@ deltaFIFO      https://cloud.tencent.com/developer/article/1692474
 workQueue      https://jishuin.proginn.com/p/763bfbd2d0c7
                https://blog.pangsq.cn/2020/05/05/workQueue/#Interface
 
+
+K8s垃圾收集器 https://blog.csdn.net/z344310362/article/details/121520351
+
 1.安装minikube模拟
 https://www.voidking.com/dev-macos-minikube/
 
