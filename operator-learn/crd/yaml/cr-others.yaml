@@ -1,0 +1,15 @@
+##finalizer 在自定义controller处理好资源后，才会将finalizers字段删除，然后该crd资源才会被删除
+apiVersion: "example.com/v1"
+kind: Demo
+metadata:
+  name: crd-demo
+  finalizers:
+    - example.com/finalizer
+spec:
+  name: test
+
+#附加字段
+    additionalPrinterColumns:
+      - name: CR-Name
+        type: string
+        jsonPath: .spec.name

@@ -1,0 +1,5 @@
+# 合法性验证，要求创建的crd资源名字必须以test开头和结尾
+              properties:
+                name:
+                  type: string
+                  pattern: '^test$'

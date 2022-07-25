@@ -21,7 +21,7 @@ workQueue      https://jishuin.proginn.com/p/763bfbd2d0c7
 K8s垃圾收集器 https://blog.csdn.net/z344310362/article/details/121520351
 
 1.安装minikube模拟
-https://www.voidking.com/dev-macos-minikube/
+    https://www.voidking.com/dev-macos-minikube/
 
 minikube start --image-mirror-country='cn'
 --kubernetes-version=v1.23.3
