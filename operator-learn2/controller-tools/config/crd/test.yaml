@@ -1,0 +1,7 @@
+apiVersion: zqa.test/v1
+kind: Foo
+metadata:
+  name: test-crd
+spec:
+  name: test
+  replicas: 2
