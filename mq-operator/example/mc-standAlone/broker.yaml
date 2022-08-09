@@ -80,9 +80,9 @@ spec:
     - metadata:
         name: broker-storage
         annotations:
-          volume.beta.kubernetes.io/storage-class: nfs-provisioner
+          volume.beta.kubernetes.io/storage-class: nfs-rw
       spec:
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes: [ "ReadWriteMany" ]
         resources:
           requests:
-            storage: 30Gi
+            storage: 4Gi

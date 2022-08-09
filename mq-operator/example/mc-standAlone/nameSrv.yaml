@@ -21,7 +21,7 @@ spec:
     - metadata:
         name: namesrv-storage
         annotations:
-          volume.beta.kubernetes.io/storage-class: nfs-provisioner
+          volume.beta.kubernetes.io/storage-class: nfs-rw
       spec:
         accessModes: [ "ReadWriteMany" ]
         resources:
