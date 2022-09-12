@@ -43,6 +43,9 @@ type AppReconciler struct {
 
 //+kubebuilder:rbac:groups=ingress.zqa.demo,resources=apps,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=ingress.zqa.demo,resources=apps/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;update;create;update;patch;delete
+//+kubebuilder:rbac:groups=" ",resources=services,verbs=get;list;update;create;update;patch;delete
+//+kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses,verbs=get;list;update;create;update;patch;delete
 //+kubebuilder:rbac:groups=ingress.zqa.demo,resources=apps/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -104,7 +107,10 @@ func (r *AppReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 				return ctrl.Result{}, err
 			}
 		}
-		//service存在
+		//service存在,但是报错不是not found
+		if !errors.IsNotFound(err) && app.Spec.EnableService {
+			return ctrl.Result{}, err
+		}
 	} else {
 		//更新service
 		if app.Spec.EnableService {
@@ -121,10 +127,7 @@ func (r *AppReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	//3. Ingress的处理,service配置可能为空
 	//判断service的开关是否存在，如果为false，则没必要创建ingress
-	if !app.Spec.EnableService {
-		return ctrl.Result{}, nil
 
-	}
 	ingress := utils.NewIngress(app)
 	//设置app与ingress的级联关系
 	if err := controllerutil.SetControllerReference(app, ingress, r.Scheme); err != nil {
@@ -143,6 +146,9 @@ func (r *AppReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	} else {
 		if app.Spec.EnableIngress {
+			if err := r.Update(ctx, i); err != nil {
+				return ctrl.Result{}, err
+			}
 			logrus.Info("skip update")
 		} else {
 			if err := r.Delete(ctx, i); err != nil {
