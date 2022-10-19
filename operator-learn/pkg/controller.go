@@ -27,7 +27,8 @@ type controller struct {
 	//主要用于与index交互，减轻与apiServer交互的压力
 	ingressLister  v1.IngressLister
 	servicesLister coreLister.ServiceLister
-	queue          workqueue.RateLimitingInterface
+	//限速队列
+	queue workqueue.RateLimitingInterface
 }
 
 func (c *controller) updateService(oldObj interface{}, newObj interface{}) {
@@ -49,7 +50,7 @@ func (c *controller) enqueue(obj interface{}) {
 	if err != nil {
 		runtime.HandleError(err)
 	}
-	//放入queue
+	//将对象的key放入queue
 	c.queue.Add(key)
 }
 
