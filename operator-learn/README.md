@@ -23,7 +23,10 @@ K8s垃圾收集器 https://blog.csdn.net/z344310362/article/details/121520351
 1.安装minikube模拟
     https://www.voidking.com/dev-macos-minikube/
 
-minikube start --image-mirror-country='cn'
---kubernetes-version=v1.23.3
+minikube start --image-mirror-country='cn' \
+--image-repository="registry.cn-hangzhou.aliyuncs.com/google_containers"  \
+--driver=docker \
+--kubernetes-version=v1.23.3 
+
 
 nginx-controller      kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.1/deploy/static/provider/cloud/deploy.yaml

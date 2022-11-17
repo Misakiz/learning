@@ -1,0 +1,16 @@
+domain: zqa.demo
+layout:
+- go.kubebuilder.io/v3
+projectName: kubebuilder-app
+repo: operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: zqa.demo
+  group: ingress
+  kind: App
+  path: operator/api/v1beta1
+  version: v1beta1
+version: "3"
