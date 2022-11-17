@@ -1,0 +1,25 @@
+{
+  "CN": "webhook",
+  "hosts": [
+    "webhook.default.svc",
+    "host.minikube.internal",
+    "localhost",
+    "kubernetes",
+    "kubernetes.default",
+    "kubernetes.default.svc",
+    "kubernetes.default.svc.cluster",
+    "kubernetes.default.svc.cluster.local"
+  ],
+
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [{
+    "C": "CN",
+    "ST": "SHANGHAI",
+    "L": "SHANGHAI",
+    "O": "Kubernetes",
+    "OU": "Kubernetes-manual"
+  }]
+}

@@ -1,0 +1,14 @@
+{
+    "CN": "webhook",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [{
+        "C": "CN",
+        "ST": "SHANGHAI",
+        "L": "SHANGHAI",
+        "O": "Kubernetes",
+        "OU": "Kubernetes-manual"
+    }]
+}
